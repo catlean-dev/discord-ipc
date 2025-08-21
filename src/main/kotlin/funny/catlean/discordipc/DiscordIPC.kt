@@ -11,20 +11,22 @@ import java.util.Locale
 import java.util.function.Consumer
 
 open class DiscordIPC {
-    private val UNIX_TEMP_PATHS = arrayOf("XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP")
+    private val unixTempPaths = arrayOf("XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP")
 
-    private val GSON = Gson()
+    private val gson = Gson()
 
-    private var c: Connection? = null
+    private var connection: Connection? = null
 
     private var receivedDispatch = false
     private var queuedActivity: JsonObject? = null
 
-    var user: IPCUser? = null
+    val noUser = IPCUser()
+
+    var user = noUser
         private set
 
     val isConnected: Boolean
-        get() = c != null
+        get() = connection != null
 
     private val pID: Int
         get() {
@@ -33,32 +35,32 @@ open class DiscordIPC {
         }
 
     fun start(appId: Long): Boolean {
-        c = open { onPacket(it) }
-        if (c == null) return false
+        connection = open { onPacket(it) }
+        if (connection == null) return false
 
         val o = JsonObject()
         o.addProperty("v", 1)
         o.addProperty("client_id", appId.toString())
-        c!!.write(Opcode.Handshake, o)
+        connection!!.write(Opcode.Handshake, o)
 
         return true
     }
 
     fun setActivity(presence: RichPresence) {
-        if (c == null) return
+        if (connection == null) return
 
         queuedActivity = presence.toJson()
         if (receivedDispatch) sendActivity()
     }
 
     fun stop() {
-        if (c != null) {
-            c!!.close()
+        if (connection != null) {
+            connection!!.close()
 
-            c = null
+            connection = null
             receivedDispatch = false
             queuedActivity = null
-            user = null
+            user = noUser
         }
     }
 
@@ -71,7 +73,7 @@ open class DiscordIPC {
         o.addProperty("cmd", "SET_ACTIVITY")
         o.add("args", args)
 
-        c!!.write(Opcode.Frame, o)
+        connection!!.write(Opcode.Frame, o)
         queuedActivity = null
     }
 
@@ -88,7 +90,7 @@ open class DiscordIPC {
             } else if (data.has("cmd") && data.get("cmd").getAsString() == "DISPATCH") {
                 receivedDispatch = true
 
-                user = GSON.fromJson<IPCUser>(data.getAsJsonObject("data").getAsJsonObject("user"), IPCUser::class.java)
+                user = gson.fromJson<IPCUser>(data.getAsJsonObject("data").getAsJsonObject("user"), IPCUser::class.java)
 
                 if (queuedActivity != null) sendActivity()
             }
@@ -107,7 +109,7 @@ open class DiscordIPC {
         } else {
             var name: String? = null
 
-            for (tempPath in UNIX_TEMP_PATHS) {
+            for (tempPath in unixTempPaths) {
                 name = System.getenv(tempPath)
                 if (name != null) break
             }

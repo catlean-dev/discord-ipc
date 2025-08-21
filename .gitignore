@@ -1,4 +1,4 @@
 .gradle
 .idea
 build
-example/build
+src/main/kotlin/funny/catlean/discordipc/Main.kt
