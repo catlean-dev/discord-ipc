@@ -31,10 +31,10 @@ RichPresence.apply {
     state = "State" // optional
     
     largeImage = "large" to "LARGE TEXT" // optional
-    smallImage = "small" to "small text" // optional
+    smallImage = "https://i.imgur.com/example.png/" to "small text" // optional
     
     button1 = "button 1" to "https://example.ru/" // optional
-    button2 = "button 2" to "https://i.imgur.com/example.png/"  // optional
+    button2 = "button 2" to "https://example.net/"  // optional
 }
 ```
 
