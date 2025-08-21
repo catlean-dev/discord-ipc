@@ -61,7 +61,7 @@ class UnixConnection(name: String) : Connection() {
                         socket.read(dataB)
                         if (dataB!!.hasRemaining()) break
 
-                        val data = Charset.defaultCharset().decode(dataB.rewind()).toString()
+                        val data = Charset.defaultCharset().decode((dataB as ByteBuffer).rewind()).toString()
                         onPacket(Packet(opcode!!, JsonParser.parseString(data).asJsonObject))
 
                         dataB = null
