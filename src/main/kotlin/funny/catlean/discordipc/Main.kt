@@ -1,7 +1,8 @@
-package meteordevelopment.discordipc
+package funny.catlean.discordipc
 
 import java.lang.Thread.sleep
 
+// TODO example proj
 object Main {
     @JvmStatic
     fun main(args: Array<String>) {

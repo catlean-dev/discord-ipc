@@ -1,14 +1,13 @@
-package meteordevelopment.discordipc
+package funny.catlean.discordipc
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import meteordevelopment.discordipc.connection.Connection
-import meteordevelopment.discordipc.connection.impl.UnixConnection
-import meteordevelopment.discordipc.connection.impl.WinConnection
+import funny.catlean.discordipc.connection.Connection
+import funny.catlean.discordipc.connection.impl.UnixConnection
+import funny.catlean.discordipc.connection.impl.WinConnection
 import java.io.IOException
 import java.lang.management.ManagementFactory
 import java.util.Locale
-import java.util.function.BiConsumer
 import java.util.function.Consumer
 
 open class DiscordIPC {

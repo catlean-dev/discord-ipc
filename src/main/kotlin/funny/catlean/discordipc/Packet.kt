@@ -1,4 +1,4 @@
-package meteordevelopment.discordipc
+package funny.catlean.discordipc
 
 import com.google.gson.JsonObject
 

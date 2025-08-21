@@ -1,10 +1,10 @@
-package meteordevelopment.discordipc.connection.impl
+package funny.catlean.discordipc.connection.impl
 
 import com.google.gson.JsonParser
-import meteordevelopment.discordipc.Opcode
-import meteordevelopment.discordipc.Packet
-import meteordevelopment.discordipc.connection.Connection
-import meteordevelopment.discordipc.opcode
+import funny.catlean.discordipc.Opcode
+import funny.catlean.discordipc.Packet
+import funny.catlean.discordipc.connection.Connection
+import funny.catlean.discordipc.opcode
 import java.io.IOException
 import java.net.UnixDomainSocketAddress
 import java.nio.ByteBuffer

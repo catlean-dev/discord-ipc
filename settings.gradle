@@ -4,4 +4,4 @@ pluginManagement {
     }
 }
 rootProject.name = 'discord-ipc'
-include "example"
+// include "example"

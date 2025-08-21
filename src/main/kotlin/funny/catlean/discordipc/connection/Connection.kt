@@ -1,7 +1,7 @@
-package meteordevelopment.discordipc.connection
+package funny.catlean.discordipc.connection
 
 import com.google.gson.JsonObject
-import meteordevelopment.discordipc.Opcode
+import funny.catlean.discordipc.Opcode
 import java.nio.ByteBuffer
 import java.util.*
 
