@@ -46,10 +46,9 @@ open class DiscordIPC {
         return true
     }
 
-    fun setActivity(presence: RichPresence) {
+    fun setActivity(presence: JsonObject) {
         if (connection == null) return
-
-        queuedActivity = presence.toJson()
+        queuedActivity = presence
         if (receivedDispatch) sendActivity()
     }
 

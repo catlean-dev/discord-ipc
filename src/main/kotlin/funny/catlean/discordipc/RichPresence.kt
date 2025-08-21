@@ -73,7 +73,7 @@ object RichPresence : DiscordIPC() {
                 if (start)
                     start(new as Long)
                 else
-                    setActivity(this)
+                    setActivity(toJson())
             }
         }
 }
