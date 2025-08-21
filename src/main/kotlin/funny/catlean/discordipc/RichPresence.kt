@@ -18,56 +18,52 @@ object RichPresence : DiscordIPC() {
     var button1: Pair<String, String>? by watchDog()
     var button2: Pair<String, String>? by watchDog()
 
-    fun toJson(): JsonObject {
+    private fun toJson(): JsonObject {
         val main = JsonObject()
 
         details?.let { main.addProperty("details", it) }
         state?.let { main.addProperty("state", it) }
 
-        val timeStamps = JsonObject()
-        timeStamps.addProperty("start", Instant.now().epochSecond)
-        main.add("timestamps", timeStamps)
+        main.add("timestamps", JsonObject().apply {
+            addProperty("start", Instant.now().epochSecond)
+        })
 
         if (largeImage != null || smallImage != null) {
-            val assets = JsonObject()
+            main.add("assets", JsonObject().apply {
+                largeImage?.let { (k, v) ->
+                    addProperty("large_image", k)
+                    addProperty("large_text", v)
+                }
 
-            largeImage?.let { (k, v) ->
-                assets.addProperty("large_image", k)
-                assets.addProperty("large_text", v)
-            }
-
-            smallImage?.let { (k, v) ->
-                assets.addProperty("small_image", k)
-                assets.addProperty("small_text", v)
-            }
-
-            main.add("assets", assets)
+                smallImage?.let { (k, v) ->
+                    addProperty("small_image", k)
+                    addProperty("small_text", v)
+                }
+            })
         }
 
         if (button1 != null || button2 != null) {
-            val buttons = JsonArray()
+            main.add("buttons", JsonArray().apply {
+                button1?.let { (k, v) ->
+                    add(JsonObject().apply {
+                        addProperty("label", k)
+                        addProperty("url", v)
+                    })
+                }
 
-            button1?.let { (k, v) ->
-                val btn = JsonObject()
-                btn.addProperty("label", k)
-                btn.addProperty("url", v)
-                buttons.add(btn)
-            }
-
-            button2?.let { (k, v) ->
-                val btn = JsonObject()
-                btn.addProperty("label", k)
-                btn.addProperty("url", v)
-                buttons.add(btn)
-            }
-
-            main.add("buttons", buttons)
+                button2?.let { (k, v) ->
+                    add(JsonObject().apply {
+                        addProperty("label", k)
+                        addProperty("url", v)
+                    })
+                }
+            })
         }
 
         return main
     }
 
-    fun <T> watchDog(start: Boolean = false, initial: T? = null) =
+    private fun <T> watchDog(start: Boolean = false, initial: T? = null) =
         Delegates.observable(initial) { _, old, new ->
             if (old != new) {
                 if (start)

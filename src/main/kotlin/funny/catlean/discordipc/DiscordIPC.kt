@@ -5,10 +5,8 @@ import com.google.gson.JsonObject
 import funny.catlean.discordipc.connection.Connection
 import funny.catlean.discordipc.connection.impl.UnixConnection
 import funny.catlean.discordipc.connection.impl.WinConnection
-import java.io.IOException
 import java.lang.management.ManagementFactory
 import java.util.Locale
-import java.util.function.Consumer
 
 open class DiscordIPC {
     private val unixTempPaths = arrayOf("XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP")
@@ -17,7 +15,7 @@ open class DiscordIPC {
 
     private var connection: Connection? = null
 
-    private var receivedDispatch = false
+    private var ready = false
     private var queuedActivity: JsonObject? = null
 
     val noUser = IPCUser()
@@ -29,97 +27,90 @@ open class DiscordIPC {
         get() = connection != null
 
     private val pID: Int
-        get() {
-            val pr = ManagementFactory.getRuntimeMXBean().name
-            return pr.substring(0, pr.indexOf('@'.code.toChar())).toInt()
+        get() = ManagementFactory.getRuntimeMXBean().name.substringBefore('@'.code.toChar()).toInt()
+
+    protected fun start(appId: Long) {
+        connection = open()
+
+        connection?.let {
+            it.write(Opcode.Handshake, JsonObject().apply {
+                addProperty("v", 1)
+                addProperty("client_id", appId.toString())
+            })
         }
-
-    fun start(appId: Long): Boolean {
-        connection = open { onPacket(it) }
-        if (connection == null) return false
-
-        val o = JsonObject()
-        o.addProperty("v", 1)
-        o.addProperty("client_id", appId.toString())
-        connection!!.write(Opcode.Handshake, o)
-
-        return true
     }
 
-    fun setActivity(presence: JsonObject) {
-        if (connection == null) return
+    protected fun setActivity(presence: JsonObject) = connection?.let {
         queuedActivity = presence
-        if (receivedDispatch) sendActivity()
+        if (ready)
+            sendActivity()
     }
 
-    fun stop() {
-        if (connection != null) {
-            connection!!.close()
+    fun stop() = connection?.let {
+        it.close()
 
-            connection = null
-            receivedDispatch = false
-            queuedActivity = null
-            user = noUser
-        }
+        connection = null
+        ready = false
+        queuedActivity = null
+        user = noUser
     }
+
 
     private fun sendActivity() {
-        val args = JsonObject()
-        args.addProperty("pid", pID)
-        args.add("activity", queuedActivity)
-
-        val o = JsonObject()
-        o.addProperty("cmd", "SET_ACTIVITY")
-        o.add("args", args)
-
-        connection!!.write(Opcode.Frame, o)
+        connection?.write(Opcode.Frame, JsonObject().apply {
+            addProperty("cmd", "SET_ACTIVITY")
+            add("args", JsonObject().apply {
+                addProperty("pid", pID)
+                add("activity", queuedActivity)
+            })
+        })
         queuedActivity = null
     }
 
-    private fun onPacket(packet: Packet) {
+    fun onPacket(packet: Packet) {
         val data = packet.data
 
-        if (packet.opcode == Opcode.Close) {
-            error("Discord IPC error ${data.get("code").asInt} with message: ${data.get("message").asString}")
-            stop()
-        } else if (packet.opcode == Opcode.Frame) {
-            if (data.has("evt") && data.get("evt").asString == "ERROR") {
-                val d = data.getAsJsonObject("data")
-                error("Discord IPC error ${d.get("code").asInt} with message: ${d.get("message").asString}")
-            } else if (data.has("cmd") && data.get("cmd").getAsString() == "DISPATCH") {
-                receivedDispatch = true
+        when (packet.opcode) {
+            Opcode.Frame -> {
+                when {
+                    data.has("evt") && data["evt"].asString == "ERROR" -> {
+                        data["data"].asJsonObject.let {
+                            println("Discord IPC error ${it["code"].asInt} with message: ${it["message"].asString}")
+                        }
+                    }
 
-                user = gson.fromJson<IPCUser>(data.getAsJsonObject("data").getAsJsonObject("user"), IPCUser::class.java)
-
-                if (queuedActivity != null) sendActivity()
+                    data.has("cmd") && data["cmd"].asString == "DISPATCH" -> {
+                        ready = true
+                        user = gson.fromJson(data["data"].asJsonObject["user"], IPCUser::class.java)
+                        queuedActivity?.let { sendActivity() }
+                    }
+                }
             }
+
+            Opcode.Close -> {
+                println("Discord IPC error ${data["code"].asInt} with message: ${data["message"].asString}")
+                stop()
+            }
+
+            else -> {}
         }
     }
 
-    fun open(callback: Consumer<Packet>): Connection? {
+    fun open(): Connection? {
         val os = System.getProperty("os.name").lowercase(Locale.getDefault())
 
         if (os.contains("win")) {
             repeat(10) {
-                try {
-                    return WinConnection("\\\\?\\pipe\\discord-ipc-$it", callback)
-                } catch (_: IOException) { }
+                runCatching {
+                    return@open WinConnection("\\\\?\\pipe\\discord-ipc-$it")
+                }
             }
         } else {
-            var name: String? = null
-
-            for (tempPath in unixTempPaths) {
-                name = System.getenv(tempPath)
-                if (name != null) break
-            }
-
-            if (name == null) name = "/tmp"
-            name += "/discord-ipc-"
+            val name = unixTempPaths.firstNotNullOfOrNull { System.getenv(it) }
 
             repeat(10) {
-                try {
-                    return UnixConnection(name + it, callback)
-                } catch (_: IOException) {
+                runCatching {
+                    return@open UnixConnection("${name?:"/tmp"}/discord-ipc-$it")
                 }
             }
         }
