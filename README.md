@@ -56,7 +56,7 @@ RichPresence.user.let {
 ### Drafts
 
 ```kotlin
-  enum class State(val details: String, val state: String) {
+enum class State(val details: String, val state: String) {
     Hello("hello", "world!"),
     Kowk("Mew", "Meow")
 }
