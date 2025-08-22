@@ -94,10 +94,6 @@ RichPresence.startRolling()
 
 // Disable rolling
 RichPresence.stopRolling()
-
-
-// 
-
 ```
 
 ### Force stop
