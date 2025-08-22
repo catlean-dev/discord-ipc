@@ -28,7 +28,6 @@ object DraftService {
         if (autoRoll) {
             RichPresence.setDraft(drafts[currentId].draftId)
             currentId = (currentId + 1) % drafts.size
-            println("Discord IPC - Draft with id $currentId")
         }
     }
 }
