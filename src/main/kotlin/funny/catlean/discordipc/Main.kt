@@ -1,5 +1,7 @@
 package funny.catlean.discordipc
 
+import funny.catlean.discordipc.drafts.saveDraft
+import funny.catlean.discordipc.drafts.setDraft
 import java.lang.Thread.sleep
 
 // TODO example proj
@@ -11,17 +13,31 @@ object Main {
         RichPresence.apply {
             appId = 1093053626198523935L
 
-            details = "Details"
-            state = "State"
-            largeImage = "large" to "LARGE TEXT"
-            smallImage = "small" to "small text"
-            button1 = "button 1" to "https://example.ru/"
-            button2 = "button 2" to "https://example.ru/"
+            details = "Init Details"
+            state = "Init State"
         }
 
-        sleep(10000)
+        sleep(6000)
+
+        State.entries.forEach {
+            RichPresence.saveDraft {
+                draftId = it
+
+                details = "Draft ${it.details}"
+                state = "Draft ${it.state}"
+            }
+        }
+
+        RichPresence.startRolling()
+        sleep(60000)
+        RichPresence.stopRolling()
 
         println("Stopping Discord IPC")
         RichPresence.stop()
+    }
+
+    enum class State(val details: String, val state: String) {
+        Hello("hello", "world!"),
+        Kowk("Mew", "Meow")
     }
 }

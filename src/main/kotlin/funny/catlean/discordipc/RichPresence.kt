@@ -2,8 +2,8 @@ package funny.catlean.discordipc
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import funny.catlean.discordipc.drafts.DraftService
 
-import java.time.Instant
 import kotlin.properties.Delegates
 
 object RichPresence : DiscordIPC() {
@@ -25,7 +25,7 @@ object RichPresence : DiscordIPC() {
         state?.let { main.addProperty("state", it) }
 
         main.add("timestamps", JsonObject().apply {
-            addProperty("start", Instant.now().epochSecond)
+            addProperty("start", initTime)
         })
 
         if (largeImage != null || smallImage != null) {
@@ -72,4 +72,13 @@ object RichPresence : DiscordIPC() {
                     setActivity(toJson())
             }
         }
+
+    fun startRolling() {
+        DraftService.currentId = 0
+        DraftService.autoRoll = true
+    }
+
+    fun stopRolling() {
+        DraftService.autoRoll = false
+    }
 }

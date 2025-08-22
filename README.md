@@ -53,6 +53,53 @@ RichPresence.user.let {
 }
 ```
 
+### Drafts
+
+```kotlin
+  enum class State(val details: String, val state: String) {
+    Hello("hello", "world!"),
+    Kowk("Mew", "Meow")
+}
+
+// ... 
+
+RichPresence.apply {
+    appId = 1093053626198523935L
+
+    details = "Init Details"
+    state = "Init State"
+}
+
+State.entries.forEach {
+    RichPresence.saveDraft {
+        draftId = it // as Draft Id you can use any type
+
+        details = "Draft ${it.details}"
+        state = "Draft ${it.state}"
+    }
+}
+
+/*
+   According to Discord rules, Rich Presence can be updated no more than once every 5-15 seconds.
+   If you update it more frequently, the status will be cached and wait for the next event to be sent.
+*/
+sleep(6000)
+RichPresence.setDraft(State.Hello)
+
+sleep(6000)
+RichPresence.setDraft(State.Kowk)
+
+// If you want the sketches to change automatically in a cycle
+RichPresence.startRolling()
+
+// Disable rolling
+RichPresence.stopRolling()
+
+
+// 
+
+```
+
 ### Force stop
 
 ```kotlin

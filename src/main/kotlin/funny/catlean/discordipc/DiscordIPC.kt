@@ -5,8 +5,12 @@ import com.google.gson.JsonObject
 import funny.catlean.discordipc.connection.Connection
 import funny.catlean.discordipc.connection.impl.UnixConnection
 import funny.catlean.discordipc.connection.impl.WinConnection
+import funny.catlean.discordipc.drafts.DraftService
+import funny.catlean.discordipc.drafts.setDraft
 import java.lang.management.ManagementFactory
+import java.time.Instant
 import java.util.Locale
+import kotlin.concurrent.thread
 
 open class DiscordIPC {
     private val unixTempPaths = arrayOf("XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP")
@@ -17,6 +21,8 @@ open class DiscordIPC {
 
     private var ready = false
     private var queuedActivity: JsonObject? = null
+
+    val initTime = Instant.now().epochSecond
 
     val noUser = IPCUser()
 
@@ -29,7 +35,18 @@ open class DiscordIPC {
     private val pID: Int
         get() = ManagementFactory.getRuntimeMXBean().name.substringBefore('@'.code.toChar()).toInt()
 
+    protected fun run() {
+        if (ready) {
+            sendActivity()
+            DraftService.handleRoll()
+        }
+    }
+
     protected fun start(appId: Long) {
+        connection?.let {
+            stop()
+        }
+
         connection = open()
 
         connection?.let {
@@ -37,13 +54,13 @@ open class DiscordIPC {
                 addProperty("v", 1)
                 addProperty("client_id", appId.toString())
             })
+
+            startThread()
         }
     }
 
-    protected fun setActivity(presence: JsonObject) = connection?.let {
+    protected fun setActivity(presence: JsonObject) {
         queuedActivity = presence
-        if (ready)
-            sendActivity()
     }
 
     fun stop() = connection?.let {
@@ -55,19 +72,23 @@ open class DiscordIPC {
         user = noUser
     }
 
-
     private fun sendActivity() {
-        connection?.write(Opcode.Frame, JsonObject().apply {
-            addProperty("cmd", "SET_ACTIVITY")
-            add("args", JsonObject().apply {
-                addProperty("pid", pID)
-                add("activity", queuedActivity)
-            })
-        })
+        connection?.let { c ->
+            queuedActivity?.let { a ->
+                c.write(Opcode.Frame, JsonObject().apply {
+                    addProperty("cmd", "SET_ACTIVITY")
+                    add("args", JsonObject().apply {
+                        addProperty("pid", pID)
+                        add("activity", a)
+                    })
+                })
+            }
+        }
+
         queuedActivity = null
     }
 
-    fun onPacket(packet: Packet) {
+    fun handlePacket(packet: Packet) {
         val data = packet.data
 
         when (packet.opcode) {
@@ -116,5 +137,14 @@ open class DiscordIPC {
         }
 
         return null
+    }
+
+    private fun startThread() {
+        thread(name = "Discord IPC - Update thread", start = true, isDaemon = true) {
+            while (isConnected) {
+                runCatching { run() }
+                Thread.sleep(5000)
+            }
+        }
     }
 }
