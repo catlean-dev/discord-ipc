@@ -5,6 +5,9 @@ import com.google.gson.JsonObject
 import funny.catlean.discordipc.connection.Connection
 import funny.catlean.discordipc.connection.impl.UnixConnection
 import funny.catlean.discordipc.connection.impl.WinConnection
+import funny.catlean.discordipc.data.IPCUser
+import funny.catlean.discordipc.data.Opcode
+import funny.catlean.discordipc.data.Packet
 import funny.catlean.discordipc.drafts.DraftService
 import funny.catlean.discordipc.drafts.setDraft
 import java.lang.management.ManagementFactory

@@ -2,8 +2,8 @@ package funny.catlean.discordipc.connection
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import funny.catlean.discordipc.Opcode
-import funny.catlean.discordipc.Packet
+import funny.catlean.discordipc.data.Opcode
+import funny.catlean.discordipc.data.Packet
 import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 import java.util.*

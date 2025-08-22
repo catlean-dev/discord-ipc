@@ -1,4 +1,4 @@
-package funny.catlean.discordipc
+package funny.catlean.discordipc.data
 
 enum class Opcode {
     Handshake,

@@ -1,4 +1,4 @@
-package funny.catlean.discordipc
+package funny.catlean.discordipc.data
 
 data class IPCUser(var id: String = "none", var username: String = "none", var avatar: String = "none") {
     fun avatarLink(size: Int = 128, forcePng: Boolean = false): String = when {
