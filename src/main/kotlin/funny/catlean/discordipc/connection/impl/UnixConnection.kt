@@ -56,7 +56,7 @@ class UnixConnection(name: String) : Connection() {
         }
     }
 
-    fun ReadableByteChannel.read(): Packet? {
+    private fun ReadableByteChannel.read(): Packet? {
         if (opcode == null) {
             if (!readInt()) return null
             opcode = Opcode.entries.getOrNull(intBuf.getInt(0).rewind())
@@ -83,7 +83,7 @@ class UnixConnection(name: String) : Connection() {
         return packet
     }
 
-    fun ReadableByteChannel.readInt(): Boolean {
+    private fun ReadableByteChannel.readInt(): Boolean {
         read(intBuf)
         if (intBuf.hasRemaining()) return false
         intBuf.flip()

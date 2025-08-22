@@ -120,7 +120,7 @@ open class DiscordIPC {
         }
     }
 
-    fun open(): Connection? {
+    private fun open(): Connection? {
         val os = System.getProperty("os.name").lowercase(Locale.getDefault())
 
         if (os.contains("win")) {
