@@ -54,7 +54,8 @@ RichPresence.user.let {
 
 RichPresence.user.let {
     println("Name: ${it.username}, Id: ${it.id}, Avatar Link: ${it.avatarLink(size = 512, forcePng = true)}")
-}```
+}
+```
 
 ### Drafts
 
@@ -66,12 +67,7 @@ enum class State(val details: String, val state: String) {
 
 // ... 
 
-RichPresence.apply {
-    appId = 1093053626198523935L
-
-    details = "Init Details"
-    state = "Init State"
-}
+RichPresence.apply { appId = 1093053626198523935L }
 
 State.entries.forEach {
     RichPresence.saveDraft {
