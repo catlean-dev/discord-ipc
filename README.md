@@ -89,7 +89,7 @@ RichPresence.setDraft(State.Hello)
 sleep(6000)
 RichPresence.setDraft(State.Kowk)
 
-// If you want the sketches to change automatically in a cycle
+// If you want the drafts to change automatically in a cycle
 RichPresence.startRolling()
 
 // Disable rolling
