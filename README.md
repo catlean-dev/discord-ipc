@@ -48,10 +48,13 @@ RichPresence.apply {
 ### Get user info
 
 ```kotlin
-RichPresence.user.let { 
-    println("Name: ${it.username}, Id: ${it.id}, Avatar Link: ${it.avatarLink}")
+RichPresence.user.let {
+    println("Name: ${it.username}, Id: ${it.id}, Avatar Link: ${it.avatarLink()}")
 }
-```
+
+RichPresence.user.let {
+    println("Name: ${it.username}, Id: ${it.id}, Avatar Link: ${it.avatarLink(size = 512, forcePng = true)}")
+}```
 
 ### Drafts
 
