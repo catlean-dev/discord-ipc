@@ -1,6 +1,7 @@
 package funny.catlean.discordipc.connection.impl
 
 import com.google.gson.JsonParser
+import funny.catlean.discordipc.RichPresence
 import funny.catlean.discordipc.RichPresence.handlePacket
 import funny.catlean.discordipc.connection.Connection
 import funny.catlean.discordipc.data.Opcode
@@ -19,7 +20,11 @@ class WinConnection(name: String) : Connection() {
     }
 
     override fun write(buffer: ByteBuffer) {
-        runCatching { raf.write(buffer.array()) }
+        runCatching {
+            raf.write(buffer.array())
+        }.onFailure {
+            RichPresence.stop()
+        }
     }
 
     private fun run() {
