@@ -1,8 +1,11 @@
 # Discord IPC
-Kotlin 2.2.0 (Java 21) library for interacting with locally running Discord instance without the use of JNI.  
+Kotlin 2.2.10 (Java 21) library for interacting with locally running Discord instance without the use of JNI.  
 The library is tested on Windows and macOS.
 
 Changed activity creation and added the ability to add buttons and get a user avatar via a link.
+
+## Credits 
+Meteor Development for original Discord IPC
 
 ## Gradle
 ```groovy
@@ -15,9 +18,6 @@ dependencies {
     implementation "com.google.code.gson:gson:2.8.9" // GSON is not included but required
 }
 ```
-
-## Credits 
-Meteor Development for original Discord IPC
 
 ## Examples
 
