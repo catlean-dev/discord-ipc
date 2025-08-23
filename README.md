@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.github.catlean-dev:Discord-IPC:v1.0"
+    implementation "com.github.catlean-dev:discord-ipc:v1.0"
     implementation "com.google.code.gson:gson:2.8.9" // GSON is not included but required
 }
 ```
