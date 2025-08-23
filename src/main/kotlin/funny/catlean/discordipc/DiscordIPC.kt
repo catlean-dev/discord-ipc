@@ -9,7 +9,6 @@ import funny.catlean.discordipc.data.IPCUser
 import funny.catlean.discordipc.data.Opcode
 import funny.catlean.discordipc.data.Packet
 import funny.catlean.discordipc.drafts.DraftService
-import funny.catlean.discordipc.drafts.setDraft
 import java.lang.management.ManagementFactory
 import java.time.Instant
 import java.util.Locale
@@ -46,9 +45,7 @@ open class DiscordIPC {
     }
 
     protected fun start(appId: Long) {
-        connection?.let {
-            stop()
-        }
+        connection?.let { stop() }
 
         connection = open()
 
