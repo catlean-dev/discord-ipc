@@ -5,7 +5,7 @@ The library is tested on Windows and macOS.
 Changed activity creation and added the ability to add buttons and get a user avatar via a link.
 
 ## Credits 
-Meteor Development for original Discord IPC
+[Meteor Development](https://github.com/MeteorDevelopment) for original [Discord IPC](https://github.com/MeteorDevelopment/discord-ipc)
 
 ## Gradle
 ```groovy
