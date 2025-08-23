@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.23"
+    kotlin("jvm") version "2.2.10"
     `maven-publish`
     java
 }
@@ -26,10 +26,6 @@ java {
 
 tasks.javadoc {
     (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
-}
-
-tasks.compileKotlin {
-    kotlinOptions.jvmTarget = "21"
 }
 
 publishing {
