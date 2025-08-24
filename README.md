@@ -8,15 +8,17 @@ Changed activity creation and added the ability to add buttons and get a user av
 [Meteor Development](https://github.com/MeteorDevelopment) for original [Discord IPC](https://github.com/MeteorDevelopment/discord-ipc)
 
 ## Gradle
-```groovy
+```kotlin
 repositories {
 	mavenCentral()
-	maven { url 'https://jitpack.io' }
+	maven {
+        url = "https://jitpack.io"
+        name = "jitpack.io"
+    }
 }
 
 dependencies {
-    implementation "com.github.catlean-dev:discord-ipc:v1.0"
-    implementation "com.google.code.gson:gson:2.8.9" // GSON is not included but required
+    implementation("com.github.catlean-dev:discord-ipc:v1.1")
 }
 ```
 

@@ -1,14 +1,12 @@
 package funny.catlean.discordipc
 
-import com.google.gson.Gson
-import com.google.gson.JsonObject
 import funny.catlean.discordipc.connection.Connection
 import funny.catlean.discordipc.connection.impl.UnixConnection
 import funny.catlean.discordipc.connection.impl.WinConnection
-import funny.catlean.discordipc.data.IPCUser
-import funny.catlean.discordipc.data.Opcode
-import funny.catlean.discordipc.data.Packet
+import funny.catlean.discordipc.data.*
 import funny.catlean.discordipc.drafts.DraftService
+import funny.catlean.discordipc.serialization.json
+import kotlinx.serialization.json.encodeToJsonElement
 import java.lang.management.ManagementFactory
 import java.time.Instant
 import java.util.Locale
@@ -16,13 +14,10 @@ import kotlin.concurrent.thread
 
 open class DiscordIPC {
     private val unixTempPaths = arrayOf("XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP")
-
-    private val gson = Gson()
-
     private var connection: Connection? = null
 
     private var ready = false
-    private var queuedActivity: JsonObject? = null
+    private var queuedActivity: Activity? = null
 
     val initTime = Instant.now().epochSecond
 
@@ -50,16 +45,16 @@ open class DiscordIPC {
         connection = open()
 
         connection?.let {
-            it.write(Opcode.Handshake, JsonObject().apply {
-                addProperty("v", 1)
-                addProperty("client_id", appId.toString())
-            })
+            it.write(
+                Opcode.HANDSHAKE,
+                json.encodeToJsonElement(HandshakePayload(v = 1, clientId = appId.toString()))
+            )
 
             startThread()
         }
     }
 
-    protected fun setActivity(presence: JsonObject) {
+    protected fun setActivity(presence: Activity) {
         queuedActivity = presence
     }
 
@@ -73,49 +68,48 @@ open class DiscordIPC {
     }
 
     private fun sendActivity() {
-        connection?.let { c ->
-            queuedActivity?.let { a ->
-                c.write(Opcode.Frame, JsonObject().apply {
-                    addProperty("cmd", "SET_ACTIVITY")
-                    add("args", JsonObject().apply {
-                        addProperty("pid", pID)
-                        add("activity", a)
-                    })
-                })
+        connection?.let {
+            queuedActivity?.let { activity ->
+                it.write(
+                    Opcode.FRAME, json.encodeToJsonElement(
+                        FramePayload(
+                            cmd = Command.SET_ACTIVITY,
+                            args = FrameArgs(
+                                pid = pID,
+                                activity = activity
+                            )
+                        )
+                    )
+                )
             }
         }
 
         queuedActivity = null
     }
 
-    fun handlePacket(packet: Packet) {
-        val data = packet.data
-
-        when (packet.opcode) {
-            Opcode.Frame -> {
-                when {
-                    data.has("evt") && data["evt"].asString == "ERROR" -> {
-                        data["data"].asJsonObject.let {
-                            println("Discord IPC error ${it["code"].asInt} with message: ${it["message"].asString}")
-                        }
-                    }
-
-                    data.has("cmd") && data["cmd"].asString == "DISPATCH" -> {
-                        ready = true
-                        user = gson.fromJson(data["data"].asJsonObject["user"], IPCUser::class.java)
-                        queuedActivity?.let { sendActivity() }
-                    }
-                }
+    fun handlePacket(packet: Packet) = when (packet.opcode) {
+        Opcode.FRAME -> when {
+            packet.data.evt == PacketEvt.ERROR -> {
+                println("Discord IPC error ${packet.data.data.code} with message: ${packet.data.data.message}")
             }
 
-            Opcode.Close -> {
-                println("Discord IPC error ${data["code"].asInt} with message: ${data["message"].asString}")
-                stop()
+            packet.data.cmd == Command.DISPATCH -> {
+                ready = true
+                user = packet.data.data.user!!
+                queuedActivity?.let { sendActivity() }
             }
 
             else -> {}
         }
+
+        Opcode.CLOSE -> {
+            println("Discord IPC error ${packet.data.data.code} with message: ${packet.data.data.message}")
+            stop()
+        }
+
+        else -> {}
     }
+
 
     private fun open(): Connection? {
         val os = System.getProperty("os.name").lowercase(Locale.getDefault())
@@ -131,7 +125,7 @@ open class DiscordIPC {
 
             repeat(10) {
                 runCatching {
-                    return@open UnixConnection("${name?:"/tmp"}/discord-ipc-$it")
+                    return@open UnixConnection("${name ?: "/tmp"}/discord-ipc-$it")
                 }
             }
         }

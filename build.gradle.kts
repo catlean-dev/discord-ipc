@@ -1,19 +1,18 @@
 plugins {
     kotlin("jvm") version "2.2.10"
+    kotlin("plugin.serialization") version "2.2.10"
     `maven-publish`
-    java
 }
 
 group = "catlean"
-version = "1.0"
+version = "1.1"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.8.9")
-    implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 }
 
 java {

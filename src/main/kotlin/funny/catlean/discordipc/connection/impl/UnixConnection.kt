@@ -1,11 +1,11 @@
 package funny.catlean.discordipc.connection.impl
 
-import com.google.gson.JsonParser
 import funny.catlean.discordipc.RichPresence.handlePacket
 import funny.catlean.discordipc.connection.Connection
 import funny.catlean.discordipc.connection.rewind
 import funny.catlean.discordipc.data.Opcode
 import funny.catlean.discordipc.data.Packet
+import funny.catlean.discordipc.serialization.json
 import java.net.UnixDomainSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
@@ -73,9 +73,11 @@ class UnixConnection(name: String) : Connection() {
         read(dataBuf!!)
         if (dataBuf!!.hasRemaining()) return null
 
-        dataBuf!!.flip()
-        val json = JsonParser.parseString(Charsets.UTF_8.decode(dataBuf!!).toString()).asJsonObject
-        val packet = Packet(opcode!!, json)
+        dataBuf?.flip()
+        val packet = Packet(
+            opcode!!,
+            json.decodeFromString(Charsets.UTF_8.decode(dataBuf!!).toString())
+        )
 
         opcode = null
         length = null

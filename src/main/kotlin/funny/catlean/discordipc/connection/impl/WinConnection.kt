@@ -1,11 +1,12 @@
 package funny.catlean.discordipc.connection.impl
 
-import com.google.gson.JsonParser
 import funny.catlean.discordipc.RichPresence
 import funny.catlean.discordipc.RichPresence.handlePacket
 import funny.catlean.discordipc.connection.Connection
 import funny.catlean.discordipc.data.Opcode
 import funny.catlean.discordipc.data.Packet
+import funny.catlean.discordipc.data.PacketPayload
+import funny.catlean.discordipc.serialization.json
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
@@ -30,20 +31,18 @@ class WinConnection(name: String) : Connection() {
     private fun run() {
         val intB = ByteBuffer.allocate(4)
 
-        runCatching {
-            while (true) {
-                readFully(intB)
-                val opcode = Opcode.entries[(Integer.reverseBytes(intB.getInt(0)))]
+        while (true) {
+            readFully(intB)
+            val opcode = Opcode.entries[(Integer.reverseBytes(intB.getInt(0)))]
 
-                readFully(intB)
-                val length = Integer.reverseBytes(intB.getInt(0))
+            readFully(intB)
+            val length = Integer.reverseBytes(intB.getInt(0))
 
-                val dataB = ByteBuffer.allocate(length)
-                readFully(dataB)
-                val data = Charset.defaultCharset().decode(dataB.rewind()).toString()
+            val dataB = ByteBuffer.allocate(length)
+            readFully(dataB)
+            val data = Charset.defaultCharset().decode(dataB.rewind()).toString()
 
-                handlePacket(Packet(opcode, JsonParser.parseString(data).asJsonObject))
-            }
+            handlePacket(Packet(opcode, json.decodeFromString<PacketPayload>(data)))
         }
     }
 

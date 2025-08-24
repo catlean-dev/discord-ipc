@@ -1,10 +1,32 @@
 package funny.catlean.discordipc
 
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import funny.catlean.discordipc.drafts.DraftService
+import kotlinx.serialization.Serializable
 
 import kotlin.properties.Delegates
+
+@Serializable
+data class ActivityButton(val label: String, val url: String)
+
+@Serializable
+data class ActivityAsset(
+    val largeImage: String?,
+    val largeText: String?,
+    val smallImage: String?,
+    val smallText: String?,
+)
+
+@Serializable
+data class ActivityTimestamp(val start: Long, val end: Long? = null)
+
+@Serializable
+data class Activity(
+    val details: String?,
+    val state: String?,
+    val timestamps: ActivityTimestamp,
+    val assets: ActivityAsset?,
+    val buttons: List<ActivityButton>?,
+)
 
 object RichPresence : DiscordIPC() {
     var appId: Long? by watchDog(true)
@@ -18,66 +40,42 @@ object RichPresence : DiscordIPC() {
     var button1: Pair<String, String>? by watchDog()
     var button2: Pair<String, String>? by watchDog()
 
-    private fun toJson(): JsonObject {
-        val main = JsonObject()
+    internal val activity: Activity
+        get() {
+            val buttonsList = mutableListOf<ActivityButton>()
+            button1?.let { buttonsList.add(ActivityButton(it.first, it.second)) }
+            button2?.let { buttonsList.add(ActivityButton(it.first, it.second)) }
 
-        details?.let { main.addProperty("details", it) }
-        state?.let { main.addProperty("state", it) }
-
-        main.add("timestamps", JsonObject().apply {
-            addProperty("start", initTime)
-        })
-
-        if (largeImage != null || smallImage != null) {
-            main.add("assets", JsonObject().apply {
-                largeImage?.let { (k, v) ->
-                    addProperty("large_image", k)
-                    addProperty("large_text", v)
-                }
-
-                smallImage?.let { (k, v) ->
-                    addProperty("small_image", k)
-                    addProperty("small_text", v)
-                }
-            })
+            return Activity(
+                details = details,
+                state = state,
+                buttons = buttonsList,
+                assets = if (largeImage != null || smallImage != null)
+                    ActivityAsset(
+                        largeImage = largeImage?.first,
+                        largeText = largeImage?.second,
+                        smallImage = smallImage?.first,
+                        smallText = smallImage?.second,
+                    ) else null,
+                timestamps = ActivityTimestamp(start = initTime),
+            )
         }
-
-        if (button1 != null || button2 != null) {
-            main.add("buttons", JsonArray().apply {
-                button1?.let { (k, v) ->
-                    add(JsonObject().apply {
-                        addProperty("label", k)
-                        addProperty("url", v)
-                    })
-                }
-
-                button2?.let { (k, v) ->
-                    add(JsonObject().apply {
-                        addProperty("label", k)
-                        addProperty("url", v)
-                    })
-                }
-            })
-        }
-
-        return main
-    }
 
     private fun <T> watchDog(start: Boolean = false, initial: T? = null) =
         Delegates.observable(initial) { _, old, new ->
             if (old != new) {
-                if (start)
-                    start(new as Long)
-                else
-                    setActivity(toJson())
+                if (start) start(new as Long)
+                else setActivity(activity)
             }
         }
 
+    @Suppress("unused")
     fun startRolling() {
         DraftService.currentId = 0
         DraftService.autoRoll = true
     }
 
+    @Suppress("unused")
     fun stopRolling() {
         DraftService.autoRoll = false
     }
