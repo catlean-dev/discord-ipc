@@ -12,7 +12,7 @@ Changed activity creation and added the ability to add buttons and get a user av
 repositories {
 	mavenCentral()
 	maven {
-        url = "https://jitpack.io"
+        url = uri("https://jitpack.io")
         name = "jitpack.io"
     }
 }
